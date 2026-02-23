@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="80" fill="#07070f"/>
+  <rect x="40" y="40" width="432" height="432" rx="60" fill="#0d0d1a" stroke="#252540" stroke-width="4"/>
+  <!-- Film strip top -->
+  <rect x="40" y="40" width="432" height="72" rx="0" fill="#10101e"/>
+  <rect x="40" y="440" width="432" height="32" rx="0" fill="#10101e"/>
+  <!-- Sprocket holes top -->
+  <rect x="64"  y="52" width="36" height="48" rx="6" fill="#07070f"/>
+  <rect x="130" y="52" width="36" height="48" rx="6" fill="#07070f"/>
+  <rect x="196" y="52" width="36" height="48" rx="6" fill="#07070f"/>
+  <rect x="262" y="52" width="36" height="48" rx="6" fill="#07070f"/>
+  <rect x="328" y="52" width="36" height="48" rx="6" fill="#07070f"/>
+  <rect x="394" y="52" width="36" height="48" rx="6" fill="#07070f"/>
+  <!-- V letter -->
+  <text x="256" y="330" font-family="Georgia,serif" font-size="220" font-weight="700"
+        fill="#e8a030" text-anchor="middle" font-style="italic">V</text>
+</svg>

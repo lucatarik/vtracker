@@ -1,0 +1,1762 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <meta name="theme-color" content="#07070f">
+  <meta name="description" content="VTracker — il tuo archivio visivo personale">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="VTracker">
+  <title>VTracker</title>
+
+  <!-- PWA manifest inline via data URI -->
+  <link rel="manifest" href="manifest.json">
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,700;1,500&family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+
+  <style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:      #07070f;
+      --bg2:     #0d0d1a;
+      --bg3:     #131326;
+      --card:    #10101e;
+      --card2:   #18182e;
+      --border:  #252540;
+      --border2: #303055;
+      --accent:  #e8a030;
+      --accent2: #b87820;
+      --accentl: #f0c060;
+      --text:    #e8e3d8;
+      --text2:   #7878a0;
+      --text3:   #454565;
+      --red:     #e84060;
+      --green:   #40c880;
+      --blue:    #5090f0;
+      --cyan:    #30c0c0;
+      --purple:  #9050e8;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'DM Mono', monospace;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ─── SCROLLBAR ─── */
+    ::-webkit-scrollbar { width: 5px; }
+    ::-webkit-scrollbar-track { background: var(--bg2); }
+    ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+
+    /* ─── HEADER ─── */
+    .header {
+      background: linear-gradient(180deg, var(--bg2) 0%, rgba(13,13,26,0.95) 100%);
+      border-bottom: 1px solid var(--border);
+      padding: 0 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 58px;
+      position: sticky;
+      top: 0;
+      z-index: 200;
+      backdrop-filter: blur(12px);
+    }
+
+    .logo {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.45rem;
+      color: var(--accent);
+      letter-spacing: -0.02em;
+      line-height: 1;
+      display: flex;
+      align-items: baseline;
+      gap: 6px;
+    }
+    .logo em {
+      font-style: italic;
+      color: var(--text2);
+      font-size: 0.75rem;
+      font-family: 'DM Mono', monospace;
+      font-weight: 300;
+    }
+
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .user-badge {
+      font-size: 0.7rem;
+      color: var(--text2);
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      padding: 4px 10px;
+      border-radius: 20px;
+      cursor: pointer;
+      transition: border-color 0.2s;
+    }
+    .user-badge:hover { border-color: var(--accent2); }
+
+    .icon-btn {
+      background: none;
+      border: none;
+      color: var(--text2);
+      cursor: pointer;
+      padding: 6px;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      transition: color 0.2s, background 0.2s;
+      font-size: 1.1rem;
+    }
+    .icon-btn:hover { color: var(--accent); background: var(--bg3); }
+
+    /* ─── TABS ─── */
+    .tabs {
+      display: flex;
+      gap: 0;
+      background: var(--bg2);
+      border-bottom: 1px solid var(--border);
+      padding: 0 20px;
+      overflow-x: auto;
+    }
+    .tabs::-webkit-scrollbar { height: 0; }
+
+    .tab {
+      padding: 14px 20px;
+      font-size: 0.72rem;
+      font-weight: 500;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--text2);
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      white-space: nowrap;
+      transition: color 0.2s, border-color 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      background: none;
+      border-left: none;
+      border-right: none;
+      border-top: none;
+    }
+    .tab:hover { color: var(--text); }
+    .tab.active {
+      color: var(--accent);
+      border-bottom-color: var(--accent);
+    }
+
+    .tab-count {
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      color: var(--text3);
+      border-radius: 10px;
+      padding: 1px 7px;
+      font-size: 0.65rem;
+    }
+    .tab.active .tab-count {
+      background: rgba(232, 160, 48, 0.12);
+      border-color: var(--accent2);
+      color: var(--accent2);
+    }
+
+    /* ─── TOOLBAR ─── */
+    .toolbar {
+      padding: 14px 20px;
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      flex-wrap: wrap;
+      background: var(--bg);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .search-input {
+      flex: 1;
+      min-width: 200px;
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 9px 14px;
+      border-radius: 8px;
+      font-family: 'DM Mono', monospace;
+      font-size: 0.78rem;
+      transition: border-color 0.2s;
+      outline: none;
+    }
+    .search-input::placeholder { color: var(--text3); }
+    .search-input:focus { border-color: var(--accent2); }
+
+    .filter-select {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      color: var(--text2);
+      padding: 9px 12px;
+      border-radius: 8px;
+      font-family: 'DM Mono', monospace;
+      font-size: 0.75rem;
+      cursor: pointer;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .filter-select:focus { border-color: var(--accent2); }
+
+    .btn {
+      padding: 9px 16px;
+      border-radius: 8px;
+      font-family: 'DM Mono', monospace;
+      font-size: 0.75rem;
+      font-weight: 500;
+      cursor: pointer;
+      border: none;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s;
+      white-space: nowrap;
+    }
+    .btn-accent {
+      background: var(--accent);
+      color: #000;
+    }
+    .btn-accent:hover { background: var(--accentl); transform: translateY(-1px); }
+    .btn-ghost {
+      background: var(--bg2);
+      color: var(--text2);
+      border: 1px solid var(--border);
+    }
+    .btn-ghost:hover { border-color: var(--accent2); color: var(--accent); }
+    .btn-danger {
+      background: rgba(232,64,96,0.12);
+      color: var(--red);
+      border: 1px solid rgba(232,64,96,0.25);
+    }
+    .btn-danger:hover { background: rgba(232,64,96,0.2); }
+
+    /* ─── GRID ─── */
+    .main-content { padding: 20px; }
+
+    .empty-state {
+      text-align: center;
+      padding: 80px 20px;
+      color: var(--text3);
+    }
+    .empty-icon { font-size: 3rem; margin-bottom: 16px; opacity: 0.4; }
+    .empty-title { font-family: 'Playfair Display', serif; font-size: 1.2rem; color: var(--text2); margin-bottom: 8px; }
+    .empty-sub { font-size: 0.75rem; }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+      gap: 14px;
+    }
+
+    /* ─── ITEM CARD ─── */
+    .item-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      overflow: hidden;
+      cursor: pointer;
+      transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s;
+      position: relative;
+    }
+    .item-card:hover {
+      transform: translateY(-3px);
+      border-color: var(--border2);
+      box-shadow: 0 8px 30px rgba(0,0,0,0.4);
+    }
+
+    .card-poster {
+      width: 100%;
+      aspect-ratio: 2/3;
+      object-fit: cover;
+      display: block;
+      background: var(--bg3);
+    }
+    .card-poster-placeholder {
+      width: 100%;
+      aspect-ratio: 2/3;
+      background: var(--bg3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2.5rem;
+      color: var(--text3);
+    }
+
+    .card-status-badge {
+      position: absolute;
+      top: 8px;
+      left: 8px;
+      font-size: 0.6rem;
+      font-weight: 500;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      padding: 3px 7px;
+      border-radius: 4px;
+    }
+
+    .status-planning  { background: rgba(144,80,232,0.85); color: #fff; }
+    .status-watching  { background: rgba(80,144,240,0.85); color: #fff; }
+    .status-reading   { background: rgba(48,192,192,0.85); color: #000; }
+    .status-completed { background: rgba(64,200,128,0.85); color: #000; }
+    .status-dropped   { background: rgba(232,64,96,0.85);  color: #fff; }
+    .status-paused    { background: rgba(232,160,48,0.85);  color: #000; }
+
+    .card-rating-badge {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      background: rgba(0,0,0,0.8);
+      color: var(--accent);
+      font-size: 0.7rem;
+      font-weight: 500;
+      padding: 3px 7px;
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      gap: 3px;
+    }
+
+    .card-body {
+      padding: 10px;
+    }
+    .card-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 0.82rem;
+      line-height: 1.3;
+      margin-bottom: 5px;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    .card-meta {
+      font-size: 0.65rem;
+      color: var(--text3);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .card-progress {
+      margin-top: 6px;
+    }
+    .progress-bar {
+      height: 2px;
+      background: var(--bg3);
+      border-radius: 2px;
+      overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%;
+      background: var(--accent);
+      border-radius: 2px;
+      transition: width 0.4s;
+    }
+    .progress-text {
+      font-size: 0.6rem;
+      color: var(--text3);
+      margin-top: 3px;
+    }
+
+    /* ─── MODALS ─── */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.8);
+      z-index: 500;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      backdrop-filter: blur(4px);
+      animation: fadeIn 0.15s ease;
+    }
+    @keyframes fadeIn { from { opacity: 0; } }
+
+    .modal {
+      background: var(--bg2);
+      border: 1px solid var(--border2);
+      border-radius: 14px;
+      width: 100%;
+      max-width: 520px;
+      max-height: 90vh;
+      overflow-y: auto;
+      animation: slideUp 0.2s ease;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.7);
+    }
+    .modal-lg { max-width: 660px; }
+    @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } }
+
+    .modal-header {
+      padding: 20px 24px 16px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .modal-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.15rem;
+      color: var(--text);
+    }
+    .modal-body { padding: 20px 24px; }
+    .modal-footer {
+      padding: 14px 24px 20px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      gap: 10px;
+      justify-content: flex-end;
+    }
+
+    /* ─── DETAIL MODAL ─── */
+    .detail-layout {
+      display: grid;
+      grid-template-columns: 140px 1fr;
+      gap: 20px;
+      align-items: start;
+    }
+    .detail-poster {
+      width: 140px;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    .detail-poster img { width: 100%; display: block; }
+    .detail-poster-placeholder {
+      width: 140px;
+      height: 210px;
+      background: var(--bg3);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2.5rem;
+      color: var(--text3);
+    }
+    .detail-info {}
+    .detail-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.2rem;
+      margin-bottom: 6px;
+      line-height: 1.3;
+    }
+    .detail-orig {
+      font-size: 0.72rem;
+      color: var(--text2);
+      font-style: italic;
+      margin-bottom: 12px;
+    }
+    .detail-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 14px;
+    }
+    .tag {
+      font-size: 0.65rem;
+      padding: 3px 8px;
+      border-radius: 4px;
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      color: var(--text2);
+    }
+
+    /* ─── FORM ELEMENTS ─── */
+    .form-group { margin-bottom: 16px; }
+    .form-label {
+      display: block;
+      font-size: 0.7rem;
+      color: var(--text2);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-bottom: 6px;
+    }
+    .form-input, .form-textarea, .form-select {
+      width: 100%;
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 9px 12px;
+      border-radius: 8px;
+      font-family: 'DM Mono', monospace;
+      font-size: 0.78rem;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .form-input:focus, .form-textarea:focus, .form-select:focus { border-color: var(--accent2); }
+    .form-textarea { resize: vertical; min-height: 80px; }
+
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+    /* ─── STAR / NUMBER RATING ─── */
+    .rating-display {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .rating-stars {
+      display: flex;
+      gap: 3px;
+    }
+    .star {
+      font-size: 1.1rem;
+      cursor: pointer;
+      transition: transform 0.1s;
+      color: var(--text3);
+    }
+    .star.filled { color: var(--accent); }
+    .star:hover { transform: scale(1.2); }
+    .rating-num {
+      font-size: 0.85rem;
+      color: var(--accent);
+      font-weight: 500;
+      min-width: 24px;
+    }
+
+    /* ─── SEARCH RESULTS ─── */
+    .search-results {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-top: 14px;
+      max-height: 380px;
+      overflow-y: auto;
+    }
+    .search-result-item {
+      display: flex;
+      gap: 12px;
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px;
+      cursor: pointer;
+      transition: border-color 0.2s;
+      align-items: center;
+    }
+    .search-result-item:hover { border-color: var(--accent2); }
+    .result-poster {
+      width: 48px;
+      height: 72px;
+      object-fit: cover;
+      border-radius: 4px;
+      flex-shrink: 0;
+      background: var(--bg);
+    }
+    .result-poster-ph {
+      width: 48px;
+      height: 72px;
+      background: var(--bg);
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.4rem;
+      flex-shrink: 0;
+      color: var(--text3);
+    }
+    .result-info { flex: 1; min-width: 0; }
+    .result-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 0.9rem;
+      margin-bottom: 3px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .result-meta { font-size: 0.68rem; color: var(--text2); }
+    .result-desc {
+      font-size: 0.68rem;
+      color: var(--text3);
+      margin-top: 4px;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    /* ─── SETUP SCREEN ─── */
+    .setup-screen {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: radial-gradient(ellipse at center, #0f0f20 0%, var(--bg) 70%);
+      padding: 20px;
+    }
+    .setup-card {
+      background: var(--bg2);
+      border: 1px solid var(--border2);
+      border-radius: 16px;
+      padding: 40px 36px;
+      width: 100%;
+      max-width: 440px;
+      box-shadow: 0 30px 80px rgba(0,0,0,0.6);
+    }
+    .setup-logo {
+      font-family: 'Playfair Display', serif;
+      font-size: 2.2rem;
+      color: var(--accent);
+      text-align: center;
+      margin-bottom: 6px;
+    }
+    .setup-tagline {
+      text-align: center;
+      font-size: 0.73rem;
+      color: var(--text2);
+      font-style: italic;
+      margin-bottom: 30px;
+    }
+    .setup-section-title {
+      font-size: 0.65rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--text3);
+      margin-bottom: 12px;
+      margin-top: 20px;
+      padding-bottom: 6px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    /* ─── STATS BAR ─── */
+    .stats-bar {
+      display: flex;
+      gap: 0;
+      padding: 0 20px;
+      background: var(--bg2);
+      border-bottom: 1px solid var(--border);
+      overflow-x: auto;
+    }
+    .stats-bar::-webkit-scrollbar { height: 0; }
+    .stat-item {
+      padding: 10px 18px;
+      border-right: 1px solid var(--border);
+      text-align: center;
+      flex-shrink: 0;
+    }
+    .stat-val {
+      font-size: 1.1rem;
+      color: var(--accent);
+      font-weight: 500;
+      line-height: 1;
+    }
+    .stat-lbl {
+      font-size: 0.6rem;
+      color: var(--text3);
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      margin-top: 2px;
+    }
+
+    /* ─── TOAST ─── */
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: var(--card2);
+      border: 1px solid var(--border2);
+      border-radius: 10px;
+      padding: 12px 18px;
+      font-size: 0.78rem;
+      z-index: 9999;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.5);
+      animation: slideIn 0.3s ease;
+      max-width: 300px;
+    }
+    @keyframes slideIn { from { transform: translateX(20px); opacity: 0; } }
+    .toast-success { border-left: 3px solid var(--green); }
+    .toast-error   { border-left: 3px solid var(--red); }
+    .toast-info    { border-left: 3px solid var(--accent); }
+
+    /* ─── LOADING ─── */
+    .spinner {
+      width: 20px; height: 20px;
+      border: 2px solid var(--border);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.6s linear infinite;
+      display: inline-block;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ─── RESPONSIVE ─── */
+    @media (max-width: 480px) {
+      .grid { grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); }
+      .detail-layout { grid-template-columns: 1fr; }
+      .detail-poster { width: 100%; max-width: 160px; margin: 0 auto; }
+      .form-row { grid-template-columns: 1fr; }
+      .setup-card { padding: 28px 22px; }
+    }
+
+    /* ─── SCROLLABLE SEARCH ─── */
+    .search-results::-webkit-scrollbar { width: 4px; }
+    .search-results::-webkit-scrollbar-thumb { background: var(--border2); }
+
+    .cloud-status {
+      font-size: 0.65rem;
+      color: var(--text3);
+      text-align: right;
+      margin-top: 4px;
+    }
+    .cloud-ok   { color: var(--green); }
+    .cloud-err  { color: var(--red); }
+    .cloud-sync { color: var(--accent2); }
+
+    .divider {
+      height: 1px;
+      background: var(--border);
+      margin: 16px 0;
+    }
+
+    select option { background: #1a1a2e; }
+
+/* ══ AGGIUNTE CSS — incolla in fondo al CSS esistente ══ */
+
+/* ── Season Editor ── */
+.season-editor {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.season-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 8px 10px;
+  transition: border-color 0.2s;
+}
+.season-row:hover { border-color: var(--border2); }
+
+.season-label {
+  font-size: 0.7rem;
+  color: var(--accent);
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  min-width: 42px;
+  flex-shrink: 0;
+}
+
+.season-ep-group {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  flex: 1;
+}
+
+.season-input {
+  width: 62px !important;
+  padding: 5px 8px !important;
+  font-size: 0.75rem !important;
+  text-align: center;
+}
+
+.season-sep {
+  font-size: 0.8rem;
+  color: var(--text3);
+  flex-shrink: 0;
+}
+
+.season-unit {
+  font-size: 0.68rem;
+  color: var(--text3);
+  flex-shrink: 0;
+}
+
+.season-del {
+  background: none;
+  border: none;
+  color: var(--text3);
+  cursor: pointer;
+  font-size: 0.75rem;
+  padding: 3px 6px;
+  border-radius: 4px;
+  transition: color 0.15s, background 0.15s;
+  flex-shrink: 0;
+}
+.season-del:hover { color: var(--red); background: rgba(232,64,96,0.1); }
+
+.season-del-ph {
+  width: 26px;
+  flex-shrink: 0;
+}
+
+/* ── Progresso in card per S/E ── */
+.progress-text { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  </style>
+</head>
+<body>
+  <div id="root">
+    <div style="display:flex;align-items:center;justify-content:center;height:100vh;font-family:monospace;color:#e8a030;font-size:1.1rem;">
+      Caricamento VTracker...
+    </div>
+  </div>
+
+  <script>
+/* ══ PANE JS di CodePen — Preprocessor: None ══ */
+
+(async () => {
+
+const React = (await import('https://esm.sh/react@18')).default;
+const { useState, useEffect, useRef, useCallback } = await import('https://esm.sh/react@18');
+const { createRoot } = await import('https://esm.sh/react-dom@18/client');
+const htm  = (await import('https://esm.sh/htm')).default;
+const html = htm.bind(React.createElement);
+const LZString = (await import('https://esm.sh/lz-string')).default;
+
+// ══════════════════════════════════════
+//  COSTANTI
+// ══════════════════════════════════════
+const TMDB_BASE  = 'https://api.themoviedb.org/3';
+const TMDB_IMG   = 'https://image.tmdb.org/t/p/w300';
+const JIKAN_BASE = 'https://api.jikan.moe/v4';
+
+const CATEGORIES = [
+  { id:'movies',  label:'Film',     icon:'🎬', plural:'film'  },
+  { id:'tvshows', label:'Serie TV', icon:'📺', plural:'serie' },
+  { id:'anime',   label:'Anime',    icon:'⛩️',  plural:'anime' },
+  { id:'manga',   label:'Manga',    icon:'📖', plural:'manga' },
+];
+
+// tvshows e anime usano stagioni, gli altri no
+const HAS_SEASONS = c => c === 'tvshows' || c === 'anime';
+const IS_MANGA    = c => c === 'manga';
+const IS_MOVIE    = c => c === 'movies';
+
+const STATUSES = {
+  movies:  ['planning','watching','completed','dropped','paused'],
+  tvshows: ['planning','watching','completed','dropped','paused'],
+  anime:   ['planning','watching','completed','dropped','paused'],
+  manga:   ['planning','reading','completed','dropped','paused'],
+};
+const STATUS_LABEL = {
+  planning:'Da vedere', watching:'In corso', reading:'In corso',
+  completed:'Completato', dropped:'Abbandonato', paused:'In pausa',
+};
+const STATUS_CSS = {
+  planning:'s-planning', watching:'s-watching', reading:'s-reading',
+  completed:'s-completed', dropped:'s-dropped', paused:'s-paused',
+};
+
+// ══════════════════════════════════════
+//  STAGIONI — helpers
+// ══════════════════════════════════════
+
+// Crea array stagioni vuoto con n stagioni
+function buildSeasons(n, epPerSeason = 0) {
+  return Array.from({ length: Math.max(1, n||1) }, (_, i) => ({
+    n: i + 1,
+    total: epPerSeason,
+    watched: 0,
+  }));
+}
+
+// Progresso aggregato da seasons array
+function seasonsProgress(seasons) {
+  if (!seasons?.length) return { watched:0, total:0, pct:0 };
+  const watched = seasons.reduce((s, x) => s + (x.watched|0), 0);
+  const total   = seasons.reduce((s, x) => s + (x.total|0),   0);
+  return { watched, total, pct: total ? Math.min(100, Math.round(watched/total*100)) : 0 };
+}
+
+// Label "S2 · 5/12 ep" per la card
+function activeSeason(seasons) {
+  if (!seasons?.length) return null;
+  const inc = seasons.find(s => (s.watched|0) < (s.total|0));
+  const ref = inc || seasons[seasons.length-1];
+  return 'S'+ref.n+' · '+(ref.watched|0)+'/'+(ref.total||'?')+' ep';
+}
+
+// ══════════════════════════════════════
+//  STORAGE
+// ══════════════════════════════════════
+const LS_CREDS = 'vtracker_creds';
+const LS_DATA  = 'vtracker_data';
+
+const loadCreds = () => { try { return JSON.parse(localStorage.getItem(LS_CREDS)||'null'); } catch { return null; } };
+const saveCreds = c => localStorage.setItem(LS_CREDS, JSON.stringify(c));
+const emptyData = () => ({ movies:{}, tvshows:{}, anime:{}, manga:{} });
+const loadLocal = () => { try { return JSON.parse(localStorage.getItem(LS_DATA)||'null') || emptyData(); } catch { return emptyData(); } };
+const saveLocal = d => localStorage.setItem(LS_DATA, JSON.stringify(d));
+
+// ══════════════════════════════════════
+//  EXPORT / IMPORT
+// ══════════════════════════════════════
+function exportJSON(data) {
+  const payload = JSON.stringify({ version:2, exportedAt: new Date().toISOString(), data }, null, 2);
+  const blob = new Blob([payload], { type:'application/json' });
+  const url  = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'vtracker-backup-'+new Date().toISOString().slice(0,10)+'.json';
+  document.body.appendChild(a); a.click();
+  setTimeout(() => { URL.revokeObjectURL(url); a.remove(); }, 300);
+}
+
+function parseImport(text) {
+  const parsed = JSON.parse(text);
+  return parsed.data || parsed;
+}
+
+// ══════════════════════════════════════
+//  QUERYSTRING SHARE  (#vt=<lz-compressed>)
+//  Dati minificati: no poster/overview — ricaricati da Redis/LS
+// ══════════════════════════════════════
+const QS_KEY = 'vt';
+
+// Codifica solo username + upstashUrl + upstashToken + tmdbKey
+// La libreria resta su Redis e viene scaricata all'apertura
+function encodeCreds(creds) {
+  const slim = {
+    u: creds.username    || '',
+    r: creds.upstashUrl  || '',
+    t: creds.upstashToken|| '',
+    k: creds.tmdbKey     || '',
+  };
+  return LZString.compressToEncodedURIComponent(JSON.stringify(slim));
+}
+function decodeCreds(str) {
+  const json = LZString.decompressFromEncodedURIComponent(str);
+  if (!json) throw new Error('Decompressione fallita');
+  const s = JSON.parse(json);
+  return { username:s.u||'', upstashUrl:s.r||'', upstashToken:s.t||'', tmdbKey:s.k||'' };
+}
+function buildShareURL(creds) {
+  return window.location.href.split('#')[0] + '#' + QS_KEY + '=' + encodeCreds(creds);
+}
+function readQSFromHash() {
+  const params = new URLSearchParams(window.location.hash.slice(1));
+  return params.get(QS_KEY) || null;
+}
+function clearQSHash() {
+  history.replaceState(null, '', window.location.pathname + window.location.search);
+}
+async function copyToClipboard(text) {
+  try { await navigator.clipboard.writeText(text); return true; }
+  catch {
+    const ta = Object.assign(document.createElement('textarea'), { value:text });
+    Object.assign(ta.style, { position:'fixed', opacity:'0' });
+    document.body.appendChild(ta); ta.select();
+    const ok = document.execCommand('copy');
+    ta.remove(); return ok;
+  }
+}
+
+// ══════════════════════════════════════
+//  REDIS
+// ══════════════════════════════════════
+async function redisGet(url, token, key) {
+  try {
+    const r = await fetch(url, {
+      method:'POST',
+      headers:{ 'Authorization':'Bearer '+token, 'Content-Type':'application/json' },
+      body: JSON.stringify(['GET', key]),
+    });
+    const d = await r.json();
+    return d.result ? JSON.parse(d.result) : null;
+  } catch { return null; }
+}
+async function redisSet(url, token, key, data) {
+  try {
+    const r = await fetch(url, {
+      method:'POST',
+      headers:{ 'Authorization':'Bearer '+token, 'Content-Type':'application/json' },
+      body: JSON.stringify(['SET', key, JSON.stringify(data)]),
+    });
+    return (await r.json()).result === 'OK';
+  } catch { return false; }
+}
+
+// ══════════════════════════════════════
+//  API TMDB / JIKAN
+// ══════════════════════════════════════
+async function searchTMDB(q, type, key) {
+  const r = await fetch(TMDB_BASE+'/search/'+type+'?api_key='+key+'&query='+encodeURIComponent(q)+'&language=it-IT&include_adult=false');
+  if (!r.ok) throw new Error('TMDB '+r.status);
+  return (await r.json()).results || [];
+}
+async function getTMDBDetail(id, type, key) {
+  try {
+    const r = await fetch(TMDB_BASE+'/'+type+'/'+id+'?api_key='+key+'&language=it-IT&append_to_response=seasons');
+    return r.ok ? r.json() : null;
+  } catch { return null; }
+}
+async function searchJikan(q, type) {
+  await new Promise(r => setTimeout(r, 500));
+  const r = await fetch(JIKAN_BASE+'/'+type+'?q='+encodeURIComponent(q)+'&limit=10&sfw=true');
+  if (!r.ok) throw new Error('Jikan '+r.status);
+  return (await r.json()).data || [];
+}
+
+// ══════════════════════════════════════
+//  MERGE
+// ══════════════════════════════════════
+function mergeData(local, remote) {
+  const out = emptyData();
+  for (const cat of Object.keys(out)) {
+    const l = local[cat]  || {};
+    const r = remote[cat] || {};
+    for (const id of new Set([...Object.keys(l), ...Object.keys(r)])) {
+      if (!l[id]) out[cat][id] = r[id];
+      else if (!r[id]) out[cat][id] = l[id];
+      else out[cat][id] = ((r[id].updatedAt||0) >= (l[id].updatedAt||0)) ? r[id] : l[id];
+    }
+  }
+  return out;
+}
+
+// ══════════════════════════════════════
+//  STYLE OBJECTS (mai stringhe in style=)
+// ══════════════════════════════════════
+const sAccent   = { color:'var(--accent)'  };
+const sGreen    = { color:'var(--green)'   };
+const sBlue     = { color:'var(--blue)'    };
+const sAccent2  = { color:'var(--accent2)' };
+const sRed      = { color:'var(--red)'     };
+const sText3It  = { color:'var(--text3)', fontStyle:'italic' };
+const sFullBtn  = { width:'100%', justifyContent:'center', padding:'11px' };
+const sW100     = { width:'100%' };
+const sErrBox   = { background:'rgba(232,64,96,0.1)', border:'1px solid rgba(232,64,96,0.3)', borderRadius:'8px', padding:'10px 13px', fontSize:'0.73rem', color:'var(--red)', marginBottom:'12px' };
+const sErrTxt   = { color:'var(--red)', fontSize:'0.71rem', marginTop:'9px' };
+const sErrSm    = { color:'var(--red)', fontSize:'0.71rem', marginBottom:'10px' };
+const sCenter22 = { textAlign:'center', padding:'22px' };
+const sFs93     = { fontSize:'0.93rem' };
+const sHidden   = { display:'none' };
+
+// ══════════════════════════════════════
+//  COMPONENTS
+// ══════════════════════════════════════
+
+// ── Toasts ──────────────────────────
+function Toasts({ list, remove }) {
+  return html`<div class="toasts-wrap">
+    ${list.map(t => html`
+      <div key=${t.id} class=${'toast toast-'+t.type} onClick=${()=>remove(t.id)}>
+        <span>${t.type==='success'?'✓':t.type==='error'?'✕':'ℹ'}</span>
+        <span>${t.msg}</span>
+      </div>`)}
+  </div>`;
+}
+
+// ── StarRating ───────────────────────
+function StarRating({ value, onChange }) {
+  const [hover, setHover] = useState(0);
+  const d = hover || value;
+  return html`
+    <div class="rating-wrap">
+      <div class="stars">
+        ${[1,2,3,4,5,6,7,8,9,10].map(n => html`
+          <span key=${n} class=${'star'+(d>=n?' on':'')}
+            onClick=${()=>onChange(n===value?0:n)}
+            onMouseEnter=${()=>setHover(n)}
+            onMouseLeave=${()=>setHover(0)}>
+            ${d>=n?'★':'☆'}
+          </span>`)}
+      </div>
+      <span class="rating-num">${value?value+'/10':''}</span>
+    </div>`;
+}
+
+// ── SeasonEditor ─────────────────────
+function SeasonEditor({ seasons, onChange }) {
+  const rows = seasons || [];
+
+  const update = (i, key, val) => {
+    const s = rows.map((r,idx) => idx===i ? {...r,[key]:Math.max(0,+val||0)} : r);
+    onChange(s);
+  };
+  const add = () => onChange([...rows, { n:rows.length+1, total:0, watched:0 }]);
+  const remove = i => {
+    const s = rows.filter((_,idx)=>idx!==i).map((r,idx)=>({...r,n:idx+1}));
+    onChange(s.length ? s : [{ n:1, total:0, watched:0 }]);
+  };
+
+  return html`
+    <div class="season-editor">
+      ${rows.map((s,i) => html`
+        <div key=${i} class="season-row">
+          <span class="season-label">St. ${s.n}</span>
+          <div class="season-ep-group">
+            <input class="form-input season-input" type="number" min="0"
+              value=${s.watched|0}
+              onInput=${e=>update(i,'watched',e.target.value)}
+              title="Episodi visti"/>
+            <span class="season-sep">/</span>
+            <input class="form-input season-input" type="number" min="0"
+              value=${s.total|0}
+              onInput=${e=>update(i,'total',e.target.value)}
+              title="Episodi totali"/>
+            <span class="season-unit">ep</span>
+          </div>
+          ${rows.length>1
+            ? html`<button class="season-del" onClick=${()=>remove(i)} title="Rimuovi stagione">✕</button>`
+            : html`<span class="season-del-ph"></span>`}
+        </div>`)}
+      <button class="btn btn-ghost btn-sm" style=${{marginTop:'8px'}} onClick=${add}>
+        + Aggiungi stagione
+      </button>
+    </div>`;
+}
+
+// ── ItemCard ─────────────────────────
+function ItemCard({ item, cat, onClick }) {
+  const icon = CATEGORIES.find(c=>c.id===cat)?.icon||'?';
+
+  let progressLine = null;
+  let pct = 0;
+
+  if (HAS_SEASONS(cat)) {
+    const { watched, total, pct:p } = seasonsProgress(item.seasons);
+    pct = p;
+    const lbl = activeSeason(item.seasons);
+    progressLine = html`
+      <div class="card-progress">
+        ${total>0 && html`<div class="progress-bar"><div class="progress-fill" style=${{width:pct+'%'}}></div></div>`}
+        <div class="progress-text">${lbl || watched+' ep'}</div>
+      </div>`;
+  } else if (IS_MANGA(cat)) {
+    const done  = item.chaptersRead||0;
+    const total = item.totalChapters||0;
+    pct = total ? Math.min(100,Math.round(done/total*100)) : 0;
+    progressLine = html`
+      <div class="card-progress">
+        ${total>0 && html`<div class="progress-bar"><div class="progress-fill" style=${{width:pct+'%'}}></div></div>`}
+        <div class="progress-text">${done}${total?'/'+total:''} cap</div>
+      </div>`;
+  }
+
+  return html`
+    <div class="item-card" onClick=${onClick}>
+      ${item.poster
+        ? html`<img src=${item.poster} class="card-poster" alt="" loading="lazy"/>`
+        : html`<div class="card-poster-ph">${icon}</div>`}
+      <span class=${'status-badge '+STATUS_CSS[item.status]}>${STATUS_LABEL[item.status]||item.status}</span>
+      ${item.rating ? html`<span class="rating-badge">★ ${item.rating}</span>` : ''}
+      <div class="card-body">
+        <div class="card-title">${item.title}</div>
+        <div class="card-meta">
+          <span>${item.year||''}</span>
+          ${item.rating ? html`<span style=${sAccent}>★${item.rating}</span>` : ''}
+        </div>
+        ${progressLine}
+      </div>
+    </div>`;
+}
+
+// ── SearchModal ──────────────────────
+function SearchModal({ cat, creds, onAdd, onClose }) {
+  const [q, setQ]             = useState('');
+  const [results, setResults]  = useState([]);
+  const [loading, setLoading]  = useState(false);
+  const [err, setErr]          = useState('');
+  const timer = useRef(null);
+  const icon  = CATEGORIES.find(c=>c.id===cat)?.icon||'';
+  const label = CATEGORIES.find(c=>c.id===cat)?.label||'';
+
+  const doSearch = useCallback(async (query) => {
+    if (!query.trim()) { setResults([]); return; }
+    setLoading(true); setErr('');
+    try {
+      let items = [];
+      if (cat==='movies') {
+        const raw = await searchTMDB(query,'movie',creds.tmdbKey);
+        items = raw.map(m=>({ id:'tmdb_m_'+m.id, externalId:m.id, source:'tmdb', title:m.title, originalTitle:m.original_title, year:m.release_date?.slice(0,4), poster:m.poster_path?TMDB_IMG+m.poster_path:null, overview:m.overview, score:m.vote_average }));
+      } else if (cat==='tvshows') {
+        const raw = await searchTMDB(query,'tv',creds.tmdbKey);
+        items = raw.map(m=>({ id:'tmdb_tv_'+m.id, externalId:m.id, source:'tmdb', title:m.name, originalTitle:m.original_name, year:m.first_air_date?.slice(0,4), poster:m.poster_path?TMDB_IMG+m.poster_path:null, overview:m.overview, score:m.vote_average, numSeasons:m.number_of_seasons }));
+      } else if (cat==='anime') {
+        const raw = await searchJikan(query,'anime');
+        items = raw.map(m=>({ id:'mal_a_'+m.mal_id, externalId:m.mal_id, source:'jikan', title:m.title, originalTitle:m.title_japanese, year:m.year||m.aired?.prop?.from?.year, poster:m.images?.jpg?.image_url||null, overview:m.synopsis, score:m.score, episodes:m.episodes, type:m.type }));
+      } else {
+        const raw = await searchJikan(query,'manga');
+        items = raw.map(m=>({ id:'mal_mg_'+m.mal_id, externalId:m.mal_id, source:'jikan', title:m.title, originalTitle:m.title_japanese, year:m.published?.prop?.from?.year, poster:m.images?.jpg?.image_url||null, overview:m.synopsis, score:m.score, chapters:m.chapters, volumes:m.volumes, type:m.type }));
+      }
+      setResults(items);
+    } catch(e) { setErr('Errore: '+e.message); }
+    setLoading(false);
+  }, [cat, creds]);
+
+  const handleInput = e => {
+    setQ(e.target.value);
+    clearTimeout(timer.current);
+    timer.current = setTimeout(()=>doSearch(e.target.value), 650);
+  };
+
+  const handleAdd = async (item) => {
+    let seasons = null;
+
+    if (cat==='tvshows' && creds.tmdbKey) {
+      // Fetch stagioni da TMDB
+      const det = await getTMDBDetail(item.externalId,'tv',creds.tmdbKey);
+      if (det?.seasons) {
+        // TMDB include "Stagione 0" (speciali) — la filtriamo
+        const real = det.seasons.filter(s => s.season_number > 0);
+        seasons = real.map(s => ({ n:s.season_number, total:s.episode_count||0, watched:0 }));
+      } else if (det?.number_of_seasons) {
+        seasons = buildSeasons(det.number_of_seasons, 0);
+      }
+    } else if (cat==='anime') {
+      // Per anime Jikan dà numero episodi totali → mettiamo tutto in S1
+      // L'utente potrà suddividere manualmente dopo
+      seasons = [{ n:1, total: item.episodes||0, watched:0 }];
+    }
+
+    const entry = {
+      id:item.id, externalId:item.externalId, source:item.source,
+      title:item.title, originalTitle:item.originalTitle,
+      year:item.year, poster:item.poster, type:item.type,
+      status:'planning', rating:0, notes:'',
+      addedAt:Date.now(), updatedAt:Date.now(),
+      // Serie TV e Anime: seasons array
+      ...(HAS_SEASONS(cat) ? { seasons: seasons || buildSeasons(1,0) } : {}),
+      // Manga
+      ...(IS_MANGA(cat) ? { chaptersRead:0, totalChapters:item.chapters||0 } : {}),
+    };
+    onAdd(entry);
+    onClose();
+  };
+
+  const needsKey = (cat==='movies'||cat==='tvshows') && !creds.tmdbKey;
+
+  return html`
+    <div class="modal-overlay" onClick=${e=>e.target===e.currentTarget&&onClose()}>
+      <div class="modal modal-lg">
+        <div class="modal-header">
+          <h2 class="modal-title">+ Aggiungi ${icon} ${label}</h2>
+          <button class="icon-btn" onClick=${onClose}>✕</button>
+        </div>
+        <div class="modal-body">
+          ${needsKey && html`<div style=${sErrBox}>⚠ Inserisci la TMDB API Key in ⚙ Impostazioni per cercare film e serie.</div>`}
+          <input class="search-input" style=${sW100}
+            placeholder=${'Cerca '+label.toLowerCase()+'...'}
+            value=${q} onInput=${handleInput} autoFocus/>
+          ${loading && html`<div style=${sCenter22}><span class="spinner spinner-lg"></span></div>`}
+          ${err && html`<div style=${sErrTxt}>${err}</div>`}
+          <div class="search-results">
+            ${results.map(item => html`
+              <div key=${item.id} class="result-item" onClick=${()=>handleAdd(item)}>
+                ${item.poster
+                  ? html`<img src=${item.poster} class="result-poster" alt=""/>`
+                  : html`<div class="result-poster-ph">${icon}</div>`}
+                <div class="result-info">
+                  <div class="result-title">${item.title}</div>
+                  <div class="result-meta">
+                    ${item.originalTitle&&item.originalTitle!==item.title?item.originalTitle+' · ':''}${item.year||''}${item.score?' · ★'+Number(item.score).toFixed(1):''}${item.episodes?' · '+item.episodes+' ep':''}${item.chapters?' · '+item.chapters+' cap':''}${item.numSeasons?' · '+item.numSeasons+' st.':''}${item.type?' · '+item.type:''}
+                  </div>
+                  ${item.overview&&html`<div class="result-desc">${item.overview}</div>`}
+                </div>
+                <button class="btn btn-accent btn-sm">+</button>
+              </div>`)}
+          </div>
+        </div>
+      </div>
+    </div>`;
+}
+
+// ── DetailModal ──────────────────────
+function DetailModal({ item, cat, onSave, onDelete, onClose }) {
+  const [f, setF] = useState({...item});
+  const set = (k,v) => setF(p=>({...p,[k]:v}));
+  const statuses = STATUSES[cat]||STATUSES.movies;
+  const icon = CATEGORIES.find(c=>c.id===cat)?.icon||'';
+
+  // Assicura che la voce abbia seasons se non ce le ha già (retrocompat)
+  useEffect(() => {
+    if (HAS_SEASONS(cat) && !f.seasons) {
+      setF(p=>({...p, seasons:[{ n:1, total:0, watched:0 }]}));
+    }
+  }, []);
+
+  const { watched:epWatched, total:epTotal, pct } = HAS_SEASONS(cat)
+    ? seasonsProgress(f.seasons)
+    : { watched: f.chaptersRead||0, total: f.totalChapters||0, pct:0 };
+
+  return html`
+    <div class="modal-overlay" onClick=${e=>e.target===e.currentTarget&&onClose()}>
+      <div class="modal modal-lg">
+        <div class="modal-header">
+          <h2 class="modal-title" style=${sFs93}>${icon} Dettaglio</h2>
+          <button class="icon-btn" onClick=${onClose}>✕</button>
+        </div>
+        <div class="modal-body">
+
+          <!-- Poster + info -->
+          <div class="detail-layout">
+            <div>
+              ${item.poster
+                ? html`<div class="detail-poster"><img src=${item.poster} alt=""/></div>`
+                : html`<div class="detail-poster-ph">${icon}</div>`}
+            </div>
+            <div>
+              <div class="detail-title">${item.title}</div>
+              ${item.originalTitle&&item.originalTitle!==item.title
+                ? html`<div class="detail-orig">${item.originalTitle}</div>` : ''}
+              <div class="detail-tags">
+                ${item.year&&html`<span class="tag">📅 ${item.year}</span>`}
+                ${item.type&&html`<span class="tag">${item.type}</span>`}
+                ${HAS_SEASONS(cat)&&f.seasons?.length>0&&html`<span class="tag">${f.seasons.length} stagioni</span>`}
+                ${HAS_SEASONS(cat)&&epTotal>0&&html`<span class="tag">${epTotal} ep tot.</span>`}
+                ${IS_MANGA(cat)&&f.totalChapters>0&&html`<span class="tag">${f.totalChapters} cap tot.</span>`}
+              </div>
+              ${HAS_SEASONS(cat)&&epTotal>0&&html`
+                <div style=${{marginTop:'4px'}}>
+                  <div class="progress-bar" style=${{height:'3px'}}>
+                    <div class="progress-fill" style=${{width:pct+'%'}}></div>
+                  </div>
+                  <div style=${{fontSize:'0.63rem',color:'var(--text3)',marginTop:'3px'}}>${epWatched}/${epTotal} ep visti (${pct}%)</div>
+                </div>`}
+            </div>
+          </div>
+
+          <div class="divider"></div>
+
+          <!-- Stato / Anno -->
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Stato</label>
+              <select class="form-select" value=${f.status} onChange=${e=>set('status',e.target.value)}>
+                ${statuses.map(s=>html`<option key=${s} value=${s}>${STATUS_LABEL[s]||s}</option>`)}
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Anno</label>
+              <input class="form-input" value=${f.year||''} onInput=${e=>set('year',e.target.value)} placeholder="Anno"/>
+            </div>
+          </div>
+
+          <!-- STAGIONI (Serie TV e Anime) -->
+          ${HAS_SEASONS(cat) && html`
+            <div class="form-group">
+              <label class="form-label">Stagioni e episodi</label>
+              <${SeasonEditor}
+                seasons=${f.seasons||[]}
+                onChange=${s=>set('seasons',s)}/>
+            </div>`}
+
+          <!-- MANGA: capitoli -->
+          ${IS_MANGA(cat) && html`
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label">Capitoli letti</label>
+                <input class="form-input" type="number" min="0"
+                  value=${f.chaptersRead||0}
+                  onInput=${e=>set('chaptersRead',+e.target.value)}/>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Capitoli totali</label>
+                <input class="form-input" type="number" min="0"
+                  value=${f.totalChapters||0}
+                  onInput=${e=>set('totalChapters',+e.target.value)}/>
+              </div>
+            </div>`}
+
+          <!-- Voto -->
+          <div class="form-group">
+            <label class="form-label">Voto (${f.rating||'—'}/10)</label>
+            <${StarRating} value=${f.rating||0} onChange=${v=>set('rating',v)}/>
+          </div>
+
+          <!-- Note -->
+          <div class="form-group">
+            <label class="form-label">Note personali</label>
+            <textarea class="form-textarea" placeholder="Commenti, impressioni, citazioni..."
+              value=${f.notes||''} onInput=${e=>set('notes',e.target.value)}></textarea>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button class="btn btn-danger" onClick=${()=>{onDelete(item.id);onClose();}}>🗑 Rimuovi</button>
+          <button class="btn btn-ghost" onClick=${onClose}>Annulla</button>
+          <button class="btn btn-accent" onClick=${()=>onSave({...f,updatedAt:Date.now()})}>💾 Salva</button>
+        </div>
+      </div>
+    </div>`;
+}
+
+// ── SettingsModal ────────────────────
+function SettingsModal({ creds, data, onSave, onImport, onClose, onToast }) {
+  const [f, setF] = useState({...creds});
+  const set = (k,v) => setF(p=>({...p,[k]:v}));
+  const importRef = useRef(null);
+  const [urlCopied, setUrlCopied] = useState(false);
+
+  const handleImportFile = e => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = ev => { onImport(ev.target.result); onClose(); };
+    reader.readAsText(file);
+    e.target.value = '';
+  };
+
+  const handleCopyLink = async () => {
+    const url = buildShareURL(f);   // f = form creds corrente
+    const ok = await copyToClipboard(url);
+    if (ok) {
+      setUrlCopied(true);
+      setTimeout(() => setUrlCopied(false), 2500);
+    } else {
+      onToast('Impossibile copiare negli appunti', 'error');
+    }
+  };
+
+  return html`
+    <div class="modal-overlay" onClick=${e=>e.target===e.currentTarget&&onClose()}>
+      <div class="modal">
+        <div class="modal-header">
+          <h2 class="modal-title">⚙ Impostazioni</h2>
+          <button class="icon-btn" onClick=${onClose}>✕</button>
+        </div>
+        <div class="modal-body">
+
+          <div class="section-title">Account</div>
+          <div class="form-group">
+            <label class="form-label">Username</label>
+            <input class="form-input" value=${f.username} onInput=${e=>set('username',e.target.value)}/>
+          </div>
+
+          <div class="section-title">Upstash Redis</div>
+          <div class="form-group">
+            <label class="form-label">REST URL</label>
+            <input class="form-input" value=${f.upstashUrl||''} onInput=${e=>set('upstashUrl',e.target.value)} placeholder="https://xxx.upstash.io"/>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Bearer Token</label>
+            <input class="form-input" type="password" value=${f.upstashToken||''} onInput=${e=>set('upstashToken',e.target.value)} placeholder="AXxx..."/>
+          </div>
+
+          <div class="section-title">TMDB (Film e Serie TV)</div>
+          <div class="form-group">
+            <label class="form-label">API Key v3</label>
+            <input class="form-input" type="password" value=${f.tmdbKey||''} onInput=${e=>set('tmdbKey',e.target.value)} placeholder="xxxxxxxxxxxxxxxx"/>
+            <div class="form-hint">Gratis su${' '}<a href="https://www.themoviedb.org/settings/api" target="_blank" style=${sAccent2}>themoviedb.org</a>${' '}— Anime e Manga senza chiave</div>
+          </div>
+
+          <div class="section-title">Backup e condivisione</div>
+          <div style=${{display:'flex',gap:'10px',flexWrap:'wrap',marginBottom:'8px'}}>
+            <button class="btn btn-ghost" onClick=${()=>exportJSON(data)}>⬇ Esporta JSON</button>
+            <button class="btn btn-ghost" onClick=${()=>importRef.current?.click()}>⬆ Importa JSON</button>
+            <input ref=${importRef} type="file" accept=".json,application/json" style=${sHidden} onChange=${handleImportFile}/>
+          </div>
+          <button class="btn btn-ghost" style=${{width:'100%',justifyContent:'center'}}
+            onClick=${handleCopyLink}>
+            ${urlCopied ? '✓ Link copiato!' : '🔗 Copia link di condivisione'}
+          </button>
+          <div class="form-hint" style=${{marginTop:'8px'}}>
+            Il link contiene solo username, Redis URL, token e TMDB key — nessun dato della libreria.
+            Chi apre il link accede direttamente al tuo account e scarica la libreria da Redis.
+          </div>
+
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-ghost" onClick=${onClose}>Annulla</button>
+          <button class="btn btn-accent" onClick=${()=>{onSave(f);onClose();}}>Salva</button>
+        </div>
+      </div>
+    </div>`;
+}
+
+// ── SetupScreen ──────────────────────
+function SetupScreen({ onComplete }) {
+  const [f, setF] = useState({ username:'', upstashUrl:'', upstashToken:'', tmdbKey:'' });
+  const [err, setErr] = useState('');
+  const set = (k,v) => setF(p=>({...p,[k]:v}));
+  const submit = () => {
+    if (!f.username.trim()) { setErr('Inserisci un username'); return; }
+    onComplete(f);
+  };
+  return html`
+    <div class="setup-screen">
+      <div class="setup-card">
+        <div class="setup-logo">VTracker</div>
+        <div class="setup-tagline">il tuo archivio visivo personale</div>
+
+        <div class="section-title">Account</div>
+        <div class="form-group">
+          <label class="form-label">Username</label>
+          <input class="form-input" placeholder="il tuo nome" value=${f.username} onInput=${e=>set('username',e.target.value)}/>
+        </div>
+
+        <div class="section-title">Upstash Redis${' '}<span style=${sText3It}>— opzionale</span></div>
+        <div class="form-group">
+          <label class="form-label">REST URL</label>
+          <input class="form-input" placeholder="https://xxx.upstash.io" value=${f.upstashUrl} onInput=${e=>set('upstashUrl',e.target.value)}/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Bearer Token</label>
+          <input class="form-input" type="password" placeholder="AXxx..." value=${f.upstashToken} onInput=${e=>set('upstashToken',e.target.value)}/>
+        </div>
+
+        <div class="section-title">TMDB API Key${' '}<span style=${sText3It}>— per Film e Serie</span></div>
+        <div class="form-group">
+          <label class="form-label">API Key v3</label>
+          <input class="form-input" type="password" placeholder="xxxxxxxxxxxxxxxx" value=${f.tmdbKey} onInput=${e=>set('tmdbKey',e.target.value)}/>
+          <div class="form-hint">Gratis su${' '}<a href="https://www.themoviedb.org/settings/api" target="_blank" style=${sAccent2}>themoviedb.org</a>${' '}· Anime e Manga senza chiave</div>
+        </div>
+
+        ${err && html`<div style=${sErrSm}>${err}</div>`}
+        <button class="btn btn-accent" style=${sFullBtn} onClick=${submit}>✦ Inizia a tracciare</button>
+      </div>
+    </div>`;
+}
+
+// ══════════════════════════════════════
+//  APP ROOT
+// ══════════════════════════════════════
+function App() {
+  const [creds, setCreds]               = useState(null);
+  const [data, setData]                 = useState(emptyData());
+  const [cat, setCat]                   = useState('movies');
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [localQ, setLocalQ]             = useState('');
+  const [showAdd, setShowAdd]           = useState(false);
+  const [detail, setDetail]             = useState(null);
+  const [showSet, setShowSet]           = useState(false);
+  const [toasts, setToasts]             = useState([]);
+  const [cloudTxt, setCloudTxt]         = useState('');
+  const [cloudCls, setCloudCls]         = useState('');
+  const saveTimer = useRef(null);
+
+  // Init
+  useEffect(() => {
+    const c = loadCreds();
+
+    // Leggi credenziali da hash QS se presenti
+    const qsRaw = readQSFromHash();
+    let qsCreds = null;
+    if (qsRaw) {
+      try {
+        qsCreds = decodeCreds(qsRaw);
+        clearQSHash(); // URL torna pulita senza ricaricare
+      } catch {
+        console.warn('VTracker: hash QS non valido, ignorato');
+      }
+    }
+
+    // Le creds dal link hanno precedenza su quelle salvate
+    const activeCreds = qsCreds || c;
+
+    if (!activeCreds || !activeCreds.username) return;
+
+    if (qsCreds) {
+      // Salva le nuove creds e notifica
+      saveCreds(qsCreds);
+      setTimeout(() => toast('🔗 Accesso rapido via link!', 'info'), 400);
+    }
+
+    setCreds(activeCreds);
+    const local = loadLocal();
+    setData(local);
+    if (activeCreds.upstashUrl && activeCreds.upstashToken) syncFromRedis(activeCreds, local);
+    else { setCloudTxt('Locale ✓'); setCloudCls('ok'); }
+  }, []);
+
+  const toast = useCallback((msg, type='success') => {
+    const id = Date.now()+Math.random();
+    setToasts(t=>[...t,{id,msg,type}]);
+    setTimeout(()=>setToasts(t=>t.filter(x=>x.id!==id)), 3200);
+  }, []);
+  const removeToast = id => setToasts(t=>t.filter(x=>x.id!==id));
+
+  const syncFromRedis = async (c, fallback) => {
+    setCloudTxt('Sincronizzazione...'); setCloudCls('sync');
+    const remote = await redisGet(c.upstashUrl, c.upstashToken, 'vtracker_'+c.username);
+    if (remote) {
+      const merged = mergeData(fallback, remote);
+      setData(merged); saveLocal(merged);
+      setCloudTxt('Redis: sync ✓'); setCloudCls('ok');
+    } else {
+      setCloudTxt('Redis: nessun dato'); setCloudCls('');
+    }
+  };
+
+  const persistData = (newData, c) => {
+    saveLocal(newData);
+    setCloudTxt('Salvato localmente ✓'); setCloudCls('ok');
+    if (!c?.upstashUrl || !c?.upstashToken) return;
+    clearTimeout(saveTimer.current);
+    setCloudTxt('Salvataggio...'); setCloudCls('sync');
+    saveTimer.current = setTimeout(async () => {
+      const ok = await redisSet(c.upstashUrl, c.upstashToken, 'vtracker_'+c.username, newData);
+      setCloudTxt(ok ? 'Redis: '+c.username+' ✓' : 'Redis: errore');
+      setCloudCls(ok ? 'ok' : 'err');
+    }, 1000);
+  };
+
+  const updateData = d => { setData(d); persistData(d, creds); };
+
+  const handleSetup = c => {
+    saveCreds(c); setCreds(c);
+    const local = loadLocal(); setData(local);
+    if (c.upstashUrl && c.upstashToken) syncFromRedis(c, local);
+    else { setCloudTxt('Locale ✓'); setCloudCls('ok'); }
+  };
+
+  const handleSettingsSave = c => {
+    saveCreds(c); setCreds(c);
+    toast('Impostazioni salvate');
+    if (c.upstashUrl && c.upstashToken) syncFromRedis(c, data);
+  };
+
+  const handleImport = text => {
+    try {
+      const imported = parseImport(text);
+      const merged   = mergeData(data, imported);
+      updateData(merged);
+      toast('Dati importati con successo!');
+    } catch {
+      toast('File non valido o corrotto', 'error');
+    }
+  };
+
+  const handleAdd = item => {
+    updateData({...data,[cat]:{...data[cat],[item.id]:item}});
+    toast('"'+item.title+'" aggiunto!');
+  };
+  const handleSave = item => {
+    updateData({...data,[cat]:{...data[cat],[item.id]:item}});
+    setDetail(null); toast('Salvato');
+  };
+  const handleDelete = id => {
+    const nc = {...data[cat]}; delete nc[id];
+    updateData({...data,[cat]:nc});
+    toast('Rimosso','info');
+  };
+
+  // Derivati
+  const catItems = Object.values(data[cat]||{});
+
+  const filtered = catItems
+    .filter(i => statusFilter==='all' || i.status===statusFilter)
+    .filter(i => !localQ || i.title.toLowerCase().includes(localQ.toLowerCase()))
+    .sort((a,b) => (b.updatedAt||0)-(a.updatedAt||0));
+
+  const cs = (() => {
+    const rated = catItems.filter(i=>i.rating>0);
+    return {
+      total: catItems.length,
+      completed: catItems.filter(i=>i.status==='completed').length,
+      ongoing: catItems.filter(i=>i.status==='watching'||i.status==='reading').length,
+      avg: rated.length ? (rated.reduce((s,i)=>s+i.rating,0)/rated.length).toFixed(1) : '—',
+    };
+  })();
+
+  const statuses   = STATUSES[cat]||STATUSES.movies;
+  const catIcon    = CATEGORIES.find(c=>c.id===cat)?.icon||'';
+  const catPlural  = CATEGORIES.find(c=>c.id===cat)?.plural||'';
+
+  if (!creds) return html`<${SetupScreen} onComplete=${handleSetup}/>`;
+
+  return html`
+    <div>
+      <!-- Header -->
+      <header class="header">
+        <div class="logo">VTracker <em>archivio visivo</em></div>
+        <div class="header-right">
+          ${cloudTxt && html`<span class=${'cloud-txt '+cloudCls}>${cloudTxt}</span>`}
+          <span class="user-badge" onClick=${()=>setShowSet(true)}>👤 ${creds.username}</span>
+          <button class="icon-btn" onClick=${()=>setShowSet(true)} title="Impostazioni / Backup">⚙</button>
+        </div>
+      </header>
+
+      <!-- Tabs -->
+      <nav class="tabs">
+        ${CATEGORIES.map(c => html`
+          <button key=${c.id} class=${'tab'+(cat===c.id?' active':'')}
+            onClick=${()=>{setCat(c.id);setStatusFilter('all');setLocalQ('');}}>
+            ${c.icon} ${c.label}
+            <span class="tab-count">${Object.keys(data[c.id]||{}).length}</span>
+          </button>`)}
+      </nav>
+
+      <!-- Stats -->
+      <div class="stats-bar">
+        <div class="stat-item"><div class="stat-val">${cs.total}</div><div class="stat-lbl">Totale</div></div>
+        <div class="stat-item"><div class="stat-val" style=${sGreen}>${cs.completed}</div><div class="stat-lbl">Completati</div></div>
+        <div class="stat-item"><div class="stat-val" style=${sBlue}>${cs.ongoing}</div><div class="stat-lbl">In corso</div></div>
+        <div class="stat-item"><div class="stat-val">${cs.avg}</div><div class="stat-lbl">Voto medio</div></div>
+      </div>
+
+      <!-- Toolbar -->
+      <div class="toolbar">
+        <input class="search-input" placeholder=${'Filtra '+catPlural+'...'}
+          value=${localQ} onInput=${e=>setLocalQ(e.target.value)}/>
+        <select class="filter-select" value=${statusFilter} onChange=${e=>setStatusFilter(e.target.value)}>
+          <option value="all">Tutti gli stati</option>
+          ${statuses.map(s => html`<option key=${s} value=${s}>${STATUS_LABEL[s]||s}</option>`)}
+        </select>
+        <button class="btn btn-accent" onClick=${()=>setShowAdd(true)}>+ Aggiungi</button>
+      </div>
+
+      <!-- Grid -->
+      <div class="main-content">
+        ${filtered.length===0 ? html`
+          <div class="empty-state">
+            <div class="empty-icon">${catIcon}</div>
+            <div class="empty-title">${catItems.length===0?'Lista vuota':'Nessun risultato'}</div>
+            <div class="empty-sub">
+              ${catItems.length===0
+                ? html`Premi <strong style=${sAccent}>+ Aggiungi</strong> per iniziare`
+                : 'Prova a cambiare i filtri'}
+            </div>
+          </div>
+        ` : html`
+          <div class="grid">
+            ${filtered.map(item => html`
+              <${ItemCard} key=${item.id} item=${item} cat=${cat} onClick=${()=>setDetail(item)}/>`)}
+          </div>`}
+      </div>
+
+      <!-- Modals -->
+      ${showAdd && html`
+        <${SearchModal} cat=${cat} creds=${creds} onAdd=${handleAdd} onClose=${()=>setShowAdd(false)}/>`}
+
+      ${detail && html`
+        <${DetailModal} item=${detail} cat=${cat}
+          onSave=${handleSave}
+          onDelete=${id=>{handleDelete(id);setDetail(null);}}
+          onClose=${()=>setDetail(null)}/>`}
+
+      ${showSet && html`
+        <${SettingsModal} creds=${creds} data=${data}
+          onSave=${handleSettingsSave}
+          onImport=${handleImport}
+          onToast=${toast}
+          onClose=${()=>setShowSet(false)}/>`}
+
+      <${Toasts} list=${toasts} remove=${removeToast}/>
+    </div>`;
+}
+
+createRoot(document.getElementById('root')).render(html`<${App}/>`);
+
+})();
+
+  </script>
+
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js').catch(() => {});
+      });
+    }
+  </script>
+</body>
+</html>
